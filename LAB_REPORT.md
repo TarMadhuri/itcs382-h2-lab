@@ -206,4 +206,8 @@ ParcelService only knows its field `repository`, whose type is the interface Par
 
 | AI tool and exact model | Date | Purpose | Files or answers it produced or changed | How you checked its output |
 | --- | --- | --- | --- | --- |
-| | | | | |
+| Claude Code, Claude Opus 5.5 (claude-opus-5-5) | 2026-11-15 | Explain the lab instructions and help set up the tools | A summary of the lab sheet; installed JDK 21 and Maven with Homebrew and set JAVA_HOME | Ran `java -version` and `mvn -version` and checked that both show Java 21 |
+| Claude Code, Claude Opus 5.5 (claude-opus-5-5) | 2026-11-15 | Run Part 0 and make the Git commits | Ran Steps 0.1 to 0.13, changed the two lines of `Main.java` (0.6), made the commits, and pasted the outputs into the report | Compared every output with the screens in the lab sheet; checked `git log` for the commit codes; checked that the broken `findByCode` of 0.13 was restored and not committed |
+| Claude Code, Claude Opus 5.5 (claude-opus-5-5) | 2026-11-15 | Write findAll | The `findAll` method in `H2ParcelRepository.java` (0.11) | Built with `mvn package` and checked that `staff` lists P1001 and P1002 with `Free lockers: 1`, as in the lab sheet; compared it with the steps of `findByCode` |
+| Claude Code, Claude Opus 5.5 (claude-opus-5-5) | 2026-11-15 | Draft written answers | The answers to 0.3, 0.5, 0.8, 0.9, 0.13, A1, A3 and Part B questions 1 to 4 | Read each answer against the code and the lab sheet (for 0.8, the constructor of `H2ParcelRepository`; for 0.9, `findAll` and the constructor of `ParcelService`) |
+| Claude Code, Claude Opus 5.5 (claude-opus-5-5) | 2026-11-15 | Draw the Mermaid diagrams | The package diagram (A1), class diagram (A2) and sequence diagram (A3) | Checked the A1 arrows against the import lines of every file; checked A3 by running `store P1003 S1003 MEDIUM`, which put the parcel in locker 2 as in the diagram; rendered the diagrams on mermaid.live |
