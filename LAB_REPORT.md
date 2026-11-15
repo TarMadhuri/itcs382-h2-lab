@@ -89,6 +89,8 @@ P1002 | S1002      | LARGE       | STORED    | 3
 
 0.13 Optional. Describe what `find P9999'OR'1'='1` showed while the SQL was joined from strings, and what it showed after you put the placeholder back.
 
+While the SQL was joined from strings, `find P9999` correctly said `No parcel with code P9999`, but `find P9999'OR'1'='1` showed `P1001, S1001, SMALL, PICKED_UP`, even though no parcel has that code. The quotes I typed closed the text in the SQL and added the condition `'1'='1'`, so H2 ran `SELECT * FROM PARCEL WHERE CODE = 'P9999'OR'1'='1'`, which is true for every row, and `findByCode` showed the first row (SQL injection). After I put the `?` placeholder and `statement.setString(1, code)` back, the same input showed `No parcel with code P9999'OR'1'='1`, because H2 now compares CODE with the whole text I typed as one value, so no row matches.
+
 ## Part A. Model the design
 
 A1 Complete the flowchart with one node for each package and one arrow for each dependency, from the package that uses to the package that is used. Mark the package that accesses the data store.
