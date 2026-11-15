@@ -200,7 +200,7 @@ ParcelService only knows its field `repository`, whose type is the interface Par
 
 4. State the data store that you would choose for your Project Phase 2 team, files or an embedded database, the requirement that drives the choice, and the package that will access it.
 
-   I would choose an embedded database, H2. The requirement that drives the choice is that the data must stay after the program ends while needing no separate server, and H2 also lets us look up and update single records with SQL, for example by their key, instead of reading and rewriting a whole file each time. Only our `storage` package will access the data store, through repository interfaces with H2 classes behind them, so the rest of the code stays independent of H2 and `Main` creates the repositories.
+   For our Observatory Control System (OCS) I would choose an embedded database, H2. The driving requirement is that Science Plans, the Observing Programs submitted from them and their instrument configurations must stay after the program ends, and these records are linked to each other by IDs and change status over time (for example from created to submitted to validated), which tables with primary keys and SQL updates of a single row handle more safely than rewriting whole files. H2 also meets the rule of needing no separate server, since it runs inside our Java CLI as the one Maven dependency. Only our `repository` package will access the data store, through repository interfaces with H2 classes behind them, so the CLI, the observation logic and the simulated gateways stay independent of H2.
 
 ## AI usage declaration
 
