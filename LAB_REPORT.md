@@ -101,20 +101,59 @@ flowchart TB
     cli
     service
     domain
-    storage
+    storage["storage, accesses the data store"]
+    parcelpoint --> cli
+    parcelpoint --> service
+    parcelpoint --> storage
     cli --> service
+    cli --> domain
+    service --> domain
+    service --> storage
+    storage --> domain
 ```
 
 State whether cli depends on storage, and explain why.
+
+No, cli does not depend on storage. ParcelCommandLine imports only classes from domain and service, and it reaches the parcels only by calling ParcelService, which in turn uses the ParcelRepository interface in storage. Only Main (in the package parcelpoint) names a storage class directly, because it creates the repository and passes it to ParcelService, so the command line never needs to know where or how the parcels are kept.
 
 A2 Complete the class diagram of the data management layer with ParcelService, the interface ParcelRepository with its three operations, and the two classes that implement it.
 
 ```mermaid
 classDiagram
-    class ParcelService
+    class ParcelService {
+        -List~Locker~ lockers
+        -ParcelRepository repository
+        +ParcelService(repository: ParcelRepository)
+        +store(parcel: Parcel) Optional~Locker~
+        +pickUp(code: String, days: int) Optional~Double~
+        +find(code: String) Optional~Parcel~
+        +allParcels() List~Parcel~
+        +countFreeLockers() long
+    }
     class ParcelRepository {
         <<interface>>
+        +save(parcel: Parcel) void
+        +findByCode(code: String) Optional~Parcel~
+        +findAll() List~Parcel~
     }
+    class InMemoryParcelRepository {
+        -Map~String, Parcel~ parcels
+        +save(parcel: Parcel) void
+        +findByCode(code: String) Optional~Parcel~
+        +findAll() List~Parcel~
+    }
+    class H2ParcelRepository {
+        -String url
+        +H2ParcelRepository(path: String)
+        +save(parcel: Parcel) void
+        +findByCode(code: String) Optional~Parcel~
+        +findAll() List~Parcel~
+        -connect() Connection
+        -toParcel(row: ResultSet) Parcel
+    }
+    ParcelService --> "1" ParcelRepository : repository
+    ParcelRepository <|.. InMemoryParcelRepository
+    ParcelRepository <|.. H2ParcelRepository
 ```
 
 A3 Draw a sequence diagram for the command `store P1003 S1003 MEDIUM`, from the staff member to the repository. Show each message as an operation of the class that receives it.
@@ -123,10 +162,27 @@ A3 Draw a sequence diagram for the command `store P1003 S1003 MEDIUM`, from the 
 sequenceDiagram
     actor Staff
     participant cli as :ParcelCommandLine
+    participant parcel as parcel:Parcel
+    participant service as :ParcelService
+    participant locker as :Locker
+    participant repo as :ParcelRepository
     Staff->>cli: store P1003 S1003 MEDIUM
+    cli->>parcel: Parcel("P1003", "S1003", MEDIUM)
+    cli->>service: store(parcel)
+    loop each locker, until one fits
+        service->>locker: fits(parcel)
+        locker-->>service: true or false
+    end
+    service->>locker: setParcel(parcel)
+    service->>parcel: storeIn(2)
+    service->>repo: save(parcel)
+    service-->>cli: Optional of locker 2
+    cli-->>Staff: Parcel P1003 is in locker 2
 ```
 
 Explain why the last lifeline is the interface ParcelRepository rather than H2ParcelRepository.
+
+ParcelService only knows its field `repository`, whose type is the interface ParcelRepository, so the message `save(parcel)` is sent to whatever object stands behind that interface. ParcelService never names H2ParcelRepository, and Main decides which class it gets (Dependency Inversion), so the same sequence is true whether the parcels go to H2 or to the store in memory. Showing H2ParcelRepository would tie the diagram to one data store, which the design deliberately avoids.
 
 ## Part B. Design questions
 
