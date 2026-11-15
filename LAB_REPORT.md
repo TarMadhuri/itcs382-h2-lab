@@ -1,15 +1,15 @@
 # Lab Report, Designing the Data Management Layer with H2
 
-Repository URL:
+Repository URL: https://github.com/TarMadhuri/itcs382-h2-lab
 
 ## Tools
 
 | Item | Version or name |
 | --- | --- |
-| JDK | |
-| Maven | |
-| IDE | |
-| AI tool and exact model, if you used one | |
+| JDK | OpenJDK 21.0.13 (Homebrew) |
+| Maven | Apache Maven 3.10.0 |
+| IDE | Visual Studio Code 1.143.1 |
+| AI tool and exact model, if you used one | Claude Code, Claude Opus 5.5 (claude-opus-5-5) |
 
 ## Part 0. From a store in memory to H2
 
