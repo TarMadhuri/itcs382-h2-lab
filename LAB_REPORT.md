@@ -188,11 +188,19 @@ ParcelService only knows its field `repository`, whose type is the interface Par
 
 1. Identify the files that you changed to move from the store in memory to H2, and explain why no other class had to change. Use the terms of this course.
 
+   I changed only `Main.java`: one import line and the line that creates the repository, which now creates `H2ParcelRepository` instead of `InMemoryParcelRepository` (`H2ParcelRepository.java` was already in the starter, and I only finished `findAll` later). No other class had to change because `ParcelService` depends on the `ParcelRepository` interface, not on a concrete class, and it receives the repository through its constructor (dependency injection). This is the Dependency Inversion Principle: the interface is the boundary of the data management layer, so the business layer and `cli` above it never see SQL or know which data store is used, and `Main` is the one place that chooses it.
+
 2. The PARCEL table stores the size of a parcel as SMALL, MEDIUM or LARGE rather than as 1, 2 or 3. Identify the type of connascence between ParcelSize and the table in each case, and explain which one is weaker.
+
+   Storing the names SMALL, MEDIUM and LARGE gives connascence of name, because the table and `ParcelSize` only have to agree on the names, which `ParcelSize.valueOf` reads back in `toParcel`. Storing 1, 2 or 3 would give connascence of convention (and of position if the number came from the order of the enum values), because both sides would have to agree on what each number means. Connascence of name is weaker: the values are easy to read in the table, and reordering the enum or adding a new size does not silently change the meaning of rows that are already stored.
 
 3. Project Phase 2 asks for a data store that needs no separate server. Explain why an embedded database such as H2 meets this rule, and describe the limit of an embedded database that Step 0.8 showed.
 
+   H2 runs inside our own program as a library (the one dependency in `pom.xml`) and keeps its data in a file, `parcelpoint.mv.db`, so there is no database server to install or start, and `CREATE TABLE IF NOT EXISTS` creates the table on the first run. The limit shown in Step 0.8 is that the database belongs to the program that opened it: H2 locks the file, so only one program can use it at a time. While the H2 Shell had it open, ParcelPoint could not start and failed with `Database may be already in use`.
+
 4. State the data store that you would choose for your Project Phase 2 team, files or an embedded database, the requirement that drives the choice, and the package that will access it.
+
+   I would choose an embedded database, H2. The requirement that drives the choice is that the data must stay after the program ends while needing no separate server, and H2 also lets us look up and update single records with SQL, for example by their key, instead of reading and rewriting a whole file each time. Only our `storage` package will access the data store, through repository interfaces with H2 classes behind them, so the rest of the code stays independent of H2 and `Main` creates the repositories.
 
 ## AI usage declaration
 
