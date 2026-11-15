@@ -35,22 +35,44 @@ The parcels of the first run were kept only in the memory of the running program
 ParcelRepository repository = new InMemoryParcelRepository();
 ```
 
-0.6 Commit of the switch to H2:
+0.6 Commit of the switch to H2: 188344a
 
 0.7 Output of `SELECT * FROM PARCEL;` after you stored two parcels:
 
 ```text
-
+sql> SELECT * FROM PARCEL;
+CODE  | STUDENT_ID | PARCEL_SIZE | STATUS | LOCKER_NUMBER
+P1001 | S1001      | SMALL       | STORED | 1
+P1002 | S1002      | LARGE       | STORED | 3
+(2 rows, 7 ms)
 ```
 
 0.8 Explain why ParcelPoint could not start while the H2 Shell was open, and identify the class that wrote the message `Cannot create the PARCEL table`.
 
+H2 is an embedded database, so the database file belongs to the program that opened it, and H2 locks the file `parcelpoint.mv.db` while it is open. The H2 Shell still had the database open, so when ParcelPoint tried to connect, H2 refused with `Database may be already in use` (the file is locked). The message `Cannot create the PARCEL table` was written by `H2ParcelRepository`: its constructor catches the `SQLException` from H2 and throws an `IllegalStateException` with that message, and the H2 error is shown below it as the `Caused by` line.
+
 0.9 Explain why `staff` shows no parcel while `find` shows each one, and why all three lockers look free.
+
+`find` uses `findByCode` in `H2ParcelRepository`, which really runs `SELECT * FROM PARCEL WHERE CODE = ?` on the database, so it finds both parcels. `staff` uses `findAll`, but `findAll` is still a TODO that just returns an empty list (`List.of()`) without reading the database, so `staff` lists nothing. All three lockers look free because the lockers live only in the memory of `ParcelService`, and its constructor fills them back in by calling `repository.findAll()` when the program starts. Since `findAll` returns nothing, no parcel is put back into any locker, so every locker starts empty.
 
 0.11 Your findAll method:
 
 ```java
-
+@Override
+public List<Parcel> findAll() {
+    String sql = "SELECT * FROM PARCEL ORDER BY CODE";
+    List<Parcel> parcels = new ArrayList<>();
+    try (Connection connection = connect();
+         PreparedStatement statement = connection.prepareStatement(sql);
+         ResultSet row = statement.executeQuery()) {
+        while (row.next()) {
+            parcels.add(toParcel(row));
+        }
+    } catch (SQLException e) {
+        throw new IllegalStateException("Cannot read the parcels", e);
+    }
+    return parcels;
+}
 ```
 
 Commit that adds findAll:
